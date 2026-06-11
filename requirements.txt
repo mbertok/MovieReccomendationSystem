@@ -1,0 +1,4 @@
+Django==6.0.6
+djangorestframework==3.16.0
+protobuf==7.35.0
+python-dotenv==1.2.2
