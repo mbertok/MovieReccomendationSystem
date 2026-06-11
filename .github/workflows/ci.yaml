@@ -1,0 +1,115 @@
+name: Django CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: staging
+        type: choice
+        options: [ staging, production ]
+      force_deploy:
+        description: "Force deploy even if tests fail"
+        type: boolean
+        default: false
+
+# Cancel in-flight runs for the same branch on new pushes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimal default permissions; individual jobs escalate as needed
+permissions:
+  contents: read
+  packages: write
+  id-token: write          # OIDC for AWS auth (preferred over long-lived keys)
+  pull-requests: write     # For PR comment annotations
+env:
+  PYTHON_VERSION: "3.12"
+  DJANGO_SETTINGS_MODULE: config.settings.ci
+  # Docker image tag is the short SHA; overridden to "latest" on main
+  IMAGE_TAG: ${{ github.sha }}
+
+
+# ============================================================
+# JOB 1 — Lint & Static Analysis
+# ============================================================
+jobs:
+  lint:
+    name: "🔍 Lint & Static Analysis"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install lint dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ruff black isort bandit[toml] mypy django-stubs
+
+      # ── Ruff (replaces flake8 + pylint, extremely fast) ──
+      - name: Ruff lint
+        run: ruff check . --output-format=github
+
+      # ── Black formatting check ────────────────────────────
+      - name: Black formatting
+        run: black --check --diff .
+
+      # ── isort import ordering ─────────────────────────────
+      - name: isort import ordering
+        run: isort --check-only --diff .
+
+      # ── Bandit security scan ──────────────────────────────
+      - name: Bandit security scan
+        run: |
+          bandit -r . \
+            --exclude "./.venv,./tests,./node_modules" \
+            --severity-level medium \
+            --confidence-level medium \
+            -f json -o bandit-report.json || true
+          python -c "
+          import json, sys
+          report = json.load(open('bandit-report.json'))
+          highs = [r for r in report['results'] if r['issue_severity'] == 'HIGH']
+          if highs:
+              print(f'HIGH severity issues found: {len(highs)}')
+              for h in highs:
+                  print(f\"  {h['filename']}:{h['line_number']} — {h['issue_text']}\")
+              sys.exit(1)
+          print('No HIGH severity issues.')
+          "
+
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+          retention-days: 7
+
+      # ── Django system checks (catches config errors early) ─
+      - name: Install project dependencies
+        run: pip install -r requirements/ci.txt
+
+      - name: Django system check
+        env:
+          SECRET_KEY: ci-only-not-a-real-secret
+          DATABASE_URL: sqlite:///ci.db
+        run: python manage.py check --deploy --fail-level WARNING
