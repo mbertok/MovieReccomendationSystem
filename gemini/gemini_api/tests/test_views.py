@@ -1,7 +1,7 @@
 from unittest import TestCase
 import pytest
 from unittest.mock import patch
-from movieReccomendationSystem.moviereccomendationsystem.gemini.gemini_api.tests.fixtures.factories import make_gemini_response, generate_payload
+from movieReccomendationSystem.moviereccomendationsystem.gemini.gemini_api.tests.fixtures.factories import generate_payload
 from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
