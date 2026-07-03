@@ -9,6 +9,7 @@ from .gemini_client import GeminiClient
 from .serializers import GenerateTextSerializer, ChatSerializer
 from django.conf import settings
 
+
 class GenerateTextView(APIView):
     """POST /api/generate/ - Generate text from a prompt"""
     permission_classes = [AllowAny]

@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 from django.conf import settings
 import logging
 
@@ -12,9 +12,7 @@ class GeminiClient:
         api_key = settings.GEMINI_API_KEY
         if not api_key:
             raise ValueError("GEMINI_API_KEY is not set in settings")
-        genai.configure(api_key=api_key)
-        print(api_key)
-        self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
+        self.client = genai.Client(api_key=api_key)
 
     def generate_text(
             self,
@@ -38,9 +36,10 @@ class GeminiClient:
                 "temperature": temperature,
                 "max_output_tokens": max_tokens,
             }
-            response = self.model.generate_content(
-                prompt,
-                generation_config=generation_config
+            response = self.client.models.generate_content(
+                model=settings.GEMINI_MODEL,
+                contents=prompt,
+                config=generation_config
             )
             return response.text
         except Exception as e:
