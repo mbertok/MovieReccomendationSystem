@@ -1,6 +1,7 @@
-from google import genai
-from django.conf import settings
 import logging
+
+from django.conf import settings
+from google import genai
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +16,10 @@ class GeminiClient:
         self.client = genai.Client(api_key=api_key)
 
     def generate_text(
-            self,
-            prompt: str,
-            temperature: float = settings.TEMPERATURE,
-            max_tokens: int = settings.MAX_TOKENS
+        self,
+        prompt: str,
+        temperature: float = settings.TEMPERATURE,
+        max_tokens: int = settings.MAX_TOKENS,
     ):
         """
         Generate text from a prompt using Gemini Pro.
@@ -37,9 +38,7 @@ class GeminiClient:
                 "max_output_tokens": max_tokens,
             }
             response = self.client.models.generate_content(
-                model=settings.GEMINI_MODEL,
-                contents=prompt,
-                config=generation_config
+                model=settings.GEMINI_MODEL, contents=prompt, config=generation_config
             )
             return response.text
         except Exception as e:
@@ -61,7 +60,7 @@ class GeminiClient:
             chat = self.model.start_chat(history=messages)
             response = chat.send_message(
                 messages[-1]["parts"][0] if messages else "",
-                generation_config={"temperature": temperature}
+                generation_config={"temperature": temperature},
             )
             return response.text
         except Exception as e:

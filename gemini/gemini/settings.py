@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,10 +23,11 @@ load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-lhai^ne4i23b36*1fw_oyqlsi285ng$9&qm_26j5lpbf=t@63l"
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
-TEMPERATURE = os.getenv('TEMPERATURE', 0.7)
-MAX_TOKENS = os.getenv('MAX_TOKENS', 2048)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+TEMPERATURE = os.getenv("TEMPERATURE", 0.7)
+MAX_TOKENS = os.getenv("MAX_TOKENS", 2048)
+SAGEMAKER_API_ENDPOINT = os.getenv("SAGEMAKER_API_ENDPOINT", "")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -41,8 +43,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'rest_framework',
-    'gemini_api'
+    "rest_framework",
+    "gemini_api",
+    "predict",
 ]
 
 MIDDLEWARE = [
