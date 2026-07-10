@@ -2,11 +2,11 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
-from movieReccomendationSystem.moviereccomendationsystem.gemini.gemini_api.tests.fixtures.factories import \
-    generate_payload
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
+
+from .fixtures.factories import generate_payload
 
 pytestmark = pytest.mark.django_db
 
