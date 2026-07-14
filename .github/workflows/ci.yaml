@@ -112,7 +112,7 @@ jobs:
         env:
           SECRET_KEY: ci-only-not-a-real-secret
           DATABASE_URL: sqlite:///ci.db
-        run: python manage.py check --deploy --fail-level WARNING
+        run: python gemini/manage.py check --deploy --fail-level WARNING
 
       - name: Django tests
-        run: python manage.py test
+        run: python gemini/manage.py test
